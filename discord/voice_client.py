@@ -70,6 +70,7 @@ __all__ = (
     'VoiceClient',
 )
 
+import numpy as np
 
 _log = logging.getLogger(__name__)
 
@@ -233,6 +234,8 @@ class VoiceClient(VoiceProtocol):
         self._lite_nonce: int = 0
 
         self._connection: VoiceConnectionState = self.create_connection_state()
+
+        self.null_block = np.zeros((1920), dtype=np.int16).tobytes()
 
     warn_nacl: bool = not has_nacl
     supported_modes: Tuple[SupportedModes, ...] = (
@@ -557,7 +560,8 @@ class VoiceClient(VoiceProtocol):
         opus.OpusError
             Encoding the data failed.
         """
-
+        if data == self.null_block:
+            return
         self.checked_add('sequence', 1, 65535)
         if encode:
             encoded_data = self.encoder.encode(data, self.encoder.SAMPLES_PER_FRAME)
